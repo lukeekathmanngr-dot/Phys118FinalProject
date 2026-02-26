@@ -1,11 +1,11 @@
 # Configured outputs
-Makefile
-src/defs.hpp
-configure.log
+Athena++Dedner/Makefile
+Athena++Dedner/src/defs.hpp
+Athena++Dedner/configure.log
 
 # Object and binary directories
-obj/
-bin/
+Athena++Dedner/obj/
+Athena++Dedner/bin/
 
 # Compiled object files
 *.slo
@@ -39,10 +39,10 @@ athena
 meshtest.dat
 
 # Visualization package files
-.smhist
+Athena++Dedner/.smhist
 
 # Mac OS metadata
-.DS_Store
+Athena++Dedner/.DS_Store
 
 # editor temp files
 *~
@@ -62,4 +62,4 @@ meshtest.dat
 *.desc
 
 # compiled doxygen file
-doc/doxy*
+Athena++Dedner/doc/doxy*
