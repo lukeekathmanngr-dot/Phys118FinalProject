@@ -1,0 +1,7 @@
+Configure Athena make file with something like:
+python configure.py --prob=HydrostaticHelioCartesian3D -hdf5 -omp
+
+Then Make Clean, Make All, etc.
+
+For MHD: 
+python configure.py --prob=HydrostaticHelioCartesian3DNewBCMHDDEBUGGING -hdf5 -omp -b --flux=lhlld

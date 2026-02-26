@@ -1,0 +1,56 @@
+Load on Andes
+
+Configure Athena make file with something like:
+python configure.py --prob=MHDHelioCartesianSphericalBC -hdf5 -mpi -b --flux=lhlld
+
+Run this:
+
+#Run module files for compilers and associated MPI libraries/paths
+module load openmpi/5.0
+module load intel-compilers/23.2
+
+#Since the HDF5 module provided by Dartmouth is not made for MPI, we will download the parallel hdf5 file we need ourselves, unzip using tar
+cd /tmp
+wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.3/src/hdf5-1.14.3.tar.bz2
+tar xjf hdf5-1.14.3.tar.bz2 #x-extract, b-handle bz2 filetype, f-create new directory with same name as file
+cd hdf5-1.14.3 
+
+#configure - prepare build. prefix - Specifies WHERE to install HDF5 after building. Create in our home directory. enable-parallel - ensures parallel support. CC - set C compiler. CXX - set C++ compiler. FCC - Fortran compiler. disable-fortran: build without fortran
+#Simply Put: Build HDF5 with parallel MPI support, using MPI-aware compilers, install it in my home directory, skip Fortran because I don't need it.
+./configure --prefix=$HOME/hdf5-1.14.3-openmpi5 \
+            --enable-parallel \
+            CC=mpicc CXX=mpicxx FC=mpifort \
+            --disable-fortran
+
+
+Then edit makefile: 
+
+# Template for Athena++ Makefile
+# The 'configure.py' python script uses this template to create the actual Makefile
+
+# Template for Athena++ Makefile
+# Files for conditional compilation
+
+PROBLEM_FILE = MHDHelioCartesianSphericalBC.cpp
+COORDINATES_FILE = cartesian.cpp
+EOS_FILE = adiabatic_mhd.cpp
+GENERAL_EOS_FILE = noop.cpp
+RSOLVER_FILE = lhlld.cpp
+RSOLVER_DIR = mhd/
+MPIFFT_FILE =  
+CHEMNET_FILE = src/chemistry/network/none.cpp
+CHEMISTRY_FILE = src/chemistry/network_wrapper.cpp src/chemistry/utils/*.cpp
+CHEM_ODE_SOLVER_FILE = forward_euler.cpp
+CHEMRADIATION_FILE = const.cpp
+
+# General compiler specifications
+HDF5_DIR = $(HOME)/hdf5-1.14.3-openmpi5
+
+CXX := mpicxx
+CPPFLAGS := -I$(HDF5_DIR)/include
+CXXFLAGS := -O3 -std=c++11
+LDFLAGS := -L$(HDF5_DIR)/lib -Wl,-rpath,$(HDF5_DIR)/lib
+LDLIBS := -lhdf5 -lhdf5_hl -lm
+GCOV_CMD := gcov
+
+# Preliminary definitions

@@ -1,0 +1,64 @@
+<comment>
+problem   = Hydrodynamic Helio 3D Cartesian
+coordinate_system = cartesian
+
+<job>
+problem_id = 3DHydrodynamicHelioCartesianAMR  # problem ID: basename of output filenames
+
+<output1>
+file_type  = hdf5      # Binary data dump
+variable   = prim      # variables to be output
+dt         = 100       # time increment between outputs
+
+<output2>
+file_type  = rst       # rst data dump
+dt         = 3000        # time increment between outputs
+
+<time>
+cfl_number = 0.6      # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim       = -1        # cycle limit
+tlim       = 12000       # time limit
+integrator = vl2       # time integration algorithm
+xorder     = 2         # order of spatial reconstruction
+ncycle_out = 1         # interval for stdout summary info
+
+<mesh>
+nx1        = 60            # Number of zones in X1-direction
+x1min      = -900          # minimum value of X1
+x1max      = 500           # maximum value of X1
+ix1_bc     = outflow       # inner-X1 boundary flag
+ox1_bc     = user          # outer-X1 boundary flag   
+
+nx2        = 60           
+x2min      = -700              
+x2max      = 700            
+ix2_bc     = outflow      # inner-X2 boundary flag
+ox2_bc     = outflow      # outer-X2 boundary flag
+
+nx3        = 60      
+x3min      = -700      
+x3max      = 700       
+ix3_bc     = outflow  # inner-X3 boundary flag
+ox3_bc     = outflow  # outer-X3 boundary flag
+
+num_threads = 1         # Number of OpenMP threads per process
+refinement  = adaptive  # Adaptive Mesh Refinement
+numlevel    = 5
+derefine_count = 5      # Number of Steps
+
+<meshblock>
+nx1 = 10
+nx2 = 10
+nx3 = 10
+
+<refinement1>
+x1min = -20
+x1max = 20
+x2min = -20
+x2max = 20
+x3min = -20
+x3max = 20
+level = 4
+
+<hydro>
+gamma = 1.666666666666667 # gamma = C_p/C_v

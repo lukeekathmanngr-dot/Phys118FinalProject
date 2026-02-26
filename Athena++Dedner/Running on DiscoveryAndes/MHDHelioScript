@@ -1,0 +1,12 @@
+#!/bin/bash -l
+#SBATCH --time=72:00:00       # How long to run task
+#SBATCH -J MHDHelio           # Job name
+#SBATCH -o MHDHelio_%j.txt    # Standard output file
+#SBATCH -e MHDHelio_%j.err    # Standard error file
+#SBATCH --nodes=2             # Number of computers to use
+#SBATCH --ntasks-per-node=2   # Number of MPI tasks per computer node 
+#SBATCH --cpus-per-task=8     # Number of cpu's, which share memory, per task (omp) 
+
+export OMP_NUM_THREADS=8 #needs to be equal to cpus per task
+
+srun ./athena -i /dartfs-hpc/rc/home/r/f007h2r/athenaDedner/inputs/mhd/athinput.MHDHelioSphericalBC 
