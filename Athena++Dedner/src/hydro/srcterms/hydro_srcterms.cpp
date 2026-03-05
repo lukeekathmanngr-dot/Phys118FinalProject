@@ -154,7 +154,7 @@ void HydroSourceTerms::AddSourceTerms(const Real time, const Real dt,
   else if (flag_shearing_source_ == 3)
     RotatingSystemSourceTerms(dt, flux, prim, cons);
 
-  if (flag_dedner_source){
+  if (flag_dedner_source == true){
     PsiEvolution(dt, prim, cons);
   }
 

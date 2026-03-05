@@ -14,7 +14,6 @@
 // C++ Headers
 #include <cmath>
 #include <vector>
-#include <map>
 
 // Athena++ headers
 #include "../athena.hpp"
@@ -60,7 +59,8 @@ Real sw_tempBC;
 Real sw_velBC;
 Real sw_bBC;
 Real r_Inner;
-Real angle_ism;
+Real angle_ism_lambda;
+Real angle_ism_beta;
 Real omega;
 Real ch_glm;
 Real cp_glm;
@@ -70,6 +70,14 @@ Real rho_ism;
 Real thermPr_ism;
 Real rho_swBC;
 Real thermPr_swBC;
+
+//Create variables for AMR refinement
+Real threshold_densGrad;
+Real deref_threshold_densGrad;
+Real threshold_tempGrad;
+Real deref_threshold_tempGrad;
+Real threshold_pressGrad;
+Real deref_threshold_pressGrad;
 
 //========================================================================================
 // Function Headers
@@ -84,6 +92,8 @@ void Boundary_ox1(MeshBlock *pmb, Coordinates *pco,
                     AthenaArray<Real> &prim, FaceField &b,
                     Real time, Real dt,
                     int il, int iu, int jl, int ju, int kl, int ku, int ngh);
+
+int RefinementCondition(MeshBlock *pmb);
 
 //Set our user defined BC for inflowing ISM. Set up adapative mesh refinement condition if enabled in input file
 void Mesh::InitUserMeshData(ParameterInput *pin){
@@ -171,7 +181,8 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin){
     ism_temp = pin->GetReal("problem", "ism_temp");
     ism_vel = pin->GetReal("problem", "ism_vel");
     ism_B = pin->GetReal("problem", "ism_B");
-    angle_ism = pin->GetReal("problem", "angle_ism");
+    angle_ism_lambda = pin->GetReal("problem", "angle_ism_lambda");
+    angle_ism_beta = pin->GetReal("problem", "angle_ism_beta");
     omega = pin->GetReal("problem", "omega");
     radius_swBC = pin->GetReal("problem", "radius_swBC");
     sw_densBC = pin->GetReal("problem", "sw_densBC");
@@ -182,6 +193,14 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin){
     phydro->hsrc.flag_dedner_source = pin->GetOrAddBoolean("hydro", "flag_dedner_source", true); //TURNS ON DEDNER PSI FIELD SOURCE TERM/EVOLUTION
     cp_glm = pin->GetReal("hydro", "cp_glm"); // Parabolic Damping coefficient, for Dedner
     ch_glm = pin->GetReal("hydro", "ch_glm"); // Hyperbolic Wave coefficient, for Dedner
+
+    //Get thresholds for refinement from input file
+    threshold_densGrad = pin->GetReal("problem", "threshold_densGrad");
+    deref_threshold_densGrad = pin->GetReal("problem", "deref_threshold_densGrad");
+    threshold_tempGrad = pin->GetReal("problem", "threshold_tempGrad");
+    deref_threshold_tempGrad = pin->GetReal("problem", "deref_threshold_tempGrad");
+    threshold_pressGrad = pin->GetReal("problem", "threshold_pressGrad");
+    deref_threshold_pressGrad = pin->GetReal("problem", "deref_threshold_pressGrad");
 
     //Compute prim values needed for initilization
     rho_ism = ism_dens * PROTON_MASS; //kg cm-3
@@ -246,7 +265,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin){
                     phydro->w(IVX,k,j,i) =  (1-alpha) * (sw_velBC / v0) * spherical[4] * spherical[3] - (alpha) * ism_vel / v0; 
                     phydro->w(IVY,k,j,i) =  (1-alpha) * (sw_velBC / v0) * spherical[4] * spherical[2]; 
                     phydro->w(IVZ,k,j,i) =  (1-alpha) * (sw_velBC / v0) * spherical[5];
-
                 }
 
                 //Any points outside this radius, assign to ISM values
@@ -289,12 +307,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin){
                 else if (spherical[1] < r_blend && spherical[1] > r_outer){
                     Real alpha = (spherical[1] - r_outer) / dr_blend;
                     std::vector<Real> parker = ComputeParkerSpiralField(xFace, y, z);
-                    pfield->b.x1f(k,j,i) = (1-alpha) * parker[0] + alpha * (ism_B / b0) * std::cos(angle_ism);
+                    pfield->b.x1f(k,j,i) = (1-alpha) * parker[0] + alpha * (ism_B / b0) * std::cos(angle_ism_beta) * std::cos(angle_ism_lambda);
                 }
 
                 //Any points outside: set to ISM Bx
                 else{
-                    pfield->b.x1f(k,j,i) = (ism_B / b0) * std::cos(angle_ism);
+                    pfield->b.x1f(k,j,i) = (ism_B / b0) * std::cos(angle_ism_beta) * std::cos(angle_ism_lambda);
                 }
             }
         }
@@ -324,11 +342,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin){
                 else if (spherical[1] < r_blend && spherical[1] > r_outer){
                     Real alpha = (spherical[1] - r_outer) / dr_blend;
                     std::vector<Real> parker = ComputeParkerSpiralField(x, yFace, z);
-                    pfield->b.x2f(k,j,i) = (1-alpha) * parker[1] + alpha * (ism_B / b0) * std::cos(angle_ism);
+                    pfield->b.x2f(k,j,i) = (1-alpha) * parker[1] + alpha * (ism_B / b0) * std::cos(angle_ism_beta) * std::sin(angle_ism_lambda);
                 }
 
                 else{
-                    pfield->b.x2f(k,j,i) = (ism_B / b0) * std::sin(angle_ism);
+                    pfield->b.x2f(k,j,i) = (ism_B / b0) * std::cos(angle_ism_beta) * std::sin(angle_ism_lambda);
                 }
             }
         }
@@ -358,11 +376,11 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin){
                 else if (spherical[1] < r_blend && spherical[1] > r_outer){
                     Real alpha = (spherical[1] - r_outer) / dr_blend;
                     std::vector<Real> parker = ComputeParkerSpiralField(x, y, zFace);
-                    pfield->b.x3f(k,j,i) = (1-alpha) * parker[2];
+                    pfield->b.x3f(k,j,i) = (1-alpha) * parker[2] + alpha * (ism_B / b0) * std::sin(angle_ism_beta);
                 }
 
                 else{
-                    pfield->b.x3f(k,j,i) = 0;
+                    pfield->b.x3f(k,j,i) = (ism_B / b0) * std::sin(angle_ism_beta);
                 }
             }
         }
@@ -393,7 +411,7 @@ void Boundary_ox1(MeshBlock *pmb, Coordinates *pco,
                                     prim(IVX,k,j,i) = -ism_vel / v0; //x-direction
                                     prim(IVY,k,j,i) = 0;
                                     prim(IVZ,k,j,i) = 0;
-                                    prim(IPSIW,k,j,i) = 0;
+                                    //prim(IPSIW,k,j,i) = 0;
                                 }
                             }
                         }
@@ -401,7 +419,7 @@ void Boundary_ox1(MeshBlock *pmb, Coordinates *pco,
                         for (int k=kl; k<=ku; ++k){
                             for (int j=jl; j<=ju; ++j){
                                 for (int i=iu+2; i<=iu+ngh+1; ++i){
-                                    b.x1f(k,j,i) = (ism_B / b0) * std::cos(angle_ism);
+                                    b.x1f(k,j,i) = (ism_B / b0) * std::cos(angle_ism_beta) * std::cos(angle_ism_lambda);
                                 }
                             }
                         }
@@ -409,7 +427,7 @@ void Boundary_ox1(MeshBlock *pmb, Coordinates *pco,
                         for (int k=kl; k<=ku; ++k){
                             for (int j=jl; j<=ju+1; ++j){
                                 for (int i=iu+1; i<=iu+ngh; ++i){
-                                    b.x2f(k,j,i) = (ism_B / b0) * std::sin(angle_ism);
+                                    b.x2f(k,j,i) = (ism_B / b0) * std::cos(angle_ism_beta) * std::sin(angle_ism_lambda);
                                 }
                             }
                         }
@@ -417,7 +435,7 @@ void Boundary_ox1(MeshBlock *pmb, Coordinates *pco,
                         for (int k=kl; k<=ku+1; ++k){
                             for (int j=jl; j<=ju; ++j){
                                 for (int i=iu+1; i<=iu+ngh; ++i){
-                                    b.x3f(k,j,i) = 0;
+                                    b.x3f(k,j,i) = (ism_B / b0) * std::sin(angle_ism_beta);
                                 }
                             }
                         }    
@@ -487,7 +505,7 @@ void MeshBlock::UserWorkInLoop() {
                 Real vel_mag = std::sqrt(std::pow(phydro->w(IVX,k,j,i),2) + 
                                         std::pow(phydro->w(IVY,k,j,i),2) + 
                                         std::pow(phydro->w(IVZ,k,j,i),2));
-                if ((spherical[1] > r_outer) && (spherical[1] < 250) && (vel_mag > ((sw_velBC/v0) - 0.3))){
+                if ((spherical[1] > r_outer) && (spherical[1] < 250) && (vel_mag > ((sw_velBC/v0) - 0.4))){
                     phydro->w(IPR,k,j,i) = (thermPr_swBC/P0) * std::pow(r_Inner/spherical[1], 10.0/3.0); //reset cells within termination shock to expected adiabatic expansion values!
                 }
             }

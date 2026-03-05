@@ -39,8 +39,12 @@ void HydroSourceTerms::PsiEvolution(const Real dt,
           divB += (pf->b.x2f(k,j+1,i) - pf->b.x2f(k,j,i)) / dy_center;
         
         // x3-component
-          Real dz_center = pcoord->x3f(k+1) - pcoord->x3f(k);
-          divB += (pf->b.x3f(k+1,j,i) - pf->b.x3f(k,j,i)) / dz_center;
+          if (pmb->block_size.nx3 > 1) {
+            Real dz_center = pcoord->x3f(k+1) - pcoord->x3f(k);
+            if (dz_center > 0.0) {
+              divB += (pf->b.x3f(k+1,j,i) - pf->b.x3f(k,j,i)) / dz_center;
+            }
+          }
         
         Real psi = cons(IPSIC,k,j,i);
         

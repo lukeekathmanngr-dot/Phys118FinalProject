@@ -196,12 +196,12 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin){
     ch_glm = pin->GetReal("hydro", "ch_glm"); // Hyperbolic Wave coefficient, for Dedner
 
     //Get thresholds for refinement from input file
-    Real threshold_densGrad = pin->GetReal("problem", "threshold_densGrad");
-    Real deref_threshold_densGrad = pin->GetReal("problem", "deref_threshold_densGrad");
-    Real threshold_TGrad = pin->GetReal("problem", "threshold_tempGrad");
-    Real deref_threshold_TGrad = pin->GetReal("problem", "deref_threshold_tempGrad");
-    Real threshold_pressGrad = pin->GetReal("problem", "threshold_pressGrad");
-    Real deref_threshold_pressGrad = pin->GetReal("problem", "deref_threshold_pressGrad");
+    threshold_densGrad = pin->GetReal("problem", "threshold_densGrad");
+    deref_threshold_densGrad = pin->GetReal("problem", "deref_threshold_densGrad");
+    threshold_tempGrad = pin->GetReal("problem", "threshold_tempGrad");
+    deref_threshold_tempGrad = pin->GetReal("problem", "deref_threshold_tempGrad");
+    threshold_pressGrad = pin->GetReal("problem", "threshold_pressGrad");
+    deref_threshold_pressGrad = pin->GetReal("problem", "deref_threshold_pressGrad");
 
     //Compute prim values needed for initilization
     rho_ism = ism_dens * PROTON_MASS; //kg cm-3
@@ -266,7 +266,6 @@ void MeshBlock::ProblemGenerator(ParameterInput *pin){
                     phydro->w(IVX,k,j,i) =  (1-alpha) * (sw_velBC / v0) * spherical[4] * spherical[3] - (alpha) * ism_vel / v0; 
                     phydro->w(IVY,k,j,i) =  (1-alpha) * (sw_velBC / v0) * spherical[4] * spherical[2]; 
                     phydro->w(IVZ,k,j,i) =  (1-alpha) * (sw_velBC / v0) * spherical[5];
-
                 }
 
                 //Any points outside this radius, assign to ISM values
@@ -413,7 +412,7 @@ void Boundary_ox1(MeshBlock *pmb, Coordinates *pco,
                                     prim(IVX,k,j,i) = -ism_vel / v0; //x-direction
                                     prim(IVY,k,j,i) = 0;
                                     prim(IVZ,k,j,i) = 0;
-                                    prim(IPSIW,k,j,i) = 0;
+                                    //prim(IPSIW,k,j,i) = 0;
                                 }
                             }
                         }
@@ -507,7 +506,7 @@ void MeshBlock::UserWorkInLoop() {
                 Real vel_mag = std::sqrt(std::pow(phydro->w(IVX,k,j,i),2) + 
                                         std::pow(phydro->w(IVY,k,j,i),2) + 
                                         std::pow(phydro->w(IVZ,k,j,i),2));
-                if ((spherical[1] > r_outer) && (spherical[1] < 250) && (vel_mag > ((sw_velBC/v0) - 0.3))){
+                if ((spherical[1] > r_outer) && (spherical[1] < 250) && (vel_mag > ((sw_velBC/v0) - 0.4))){
                     phydro->w(IPR,k,j,i) = (thermPr_swBC/P0) * std::pow(r_Inner/spherical[1], 10.0/3.0); //reset cells within termination shock to expected adiabatic expansion values!
                 }
             }
@@ -629,6 +628,7 @@ int RefinementCondition(MeshBlock *pmb) {
   Real max_rhoGrad = 0.0;
   Real max_tempGrad = 0.0;
   Real max_pressGrad = 0.0;
+  Real max_vel = 0.0;
   int counter = 0;
   
   //Loop over whole meshblock
@@ -644,9 +644,9 @@ int RefinementCondition(MeshBlock *pmb) {
         }
         
         //Compute normalized dens gradient in each direction. Track the RELATIVE,FRACTIONAL change across cells. Fractional change = abs(current cell value - previous cell value) / current cell value
-        Real dRhox = std::abs(pmb->phydro->w(IDN,k,j,i) - pmb->phydro->w(IDN,k,j,i-1)) / pmb->phydro->w(IDN,k,j,i);
-        Real dRhoy = std::abs(pmb->phydro->w(IDN,k,j,i) - pmb->phydro->w(IDN,k,j-1,i)) / pmb->phydro->w(IDN,k,j,i);
-        Real dRhoz = std::abs(pmb->phydro->w(IDN,k,j,i) - pmb->phydro->w(IDN,k-1,j,i)) / pmb->phydro->w(IDN,k,j,i);
+        Real dRhox = 0.5 * (std::abs(pmb->phydro->w(IDN,k,j,i+1) - pmb->phydro->w(IDN,k,j,i-1))) / pmb->phydro->w(IDN,k,j,i);
+        Real dRhoy = 0.5 * (std::abs(pmb->phydro->w(IDN,k,j+1,i) - pmb->phydro->w(IDN,k,j-1,i))) / pmb->phydro->w(IDN,k,j,i);
+        Real dRhoz = 0.5 * (std::abs(pmb->phydro->w(IDN,k+1,j,i) - pmb->phydro->w(IDN,k-1,j,i))) / pmb->phydro->w(IDN,k,j,i);
 
         //Set max_rhoGrad to maximum gradient only if the gradient in a given direction is greater than current max_rhoGrad, check over all directions
         if (dRhox > max_rhoGrad) max_rhoGrad = dRhox;
@@ -655,9 +655,9 @@ int RefinementCondition(MeshBlock *pmb) {
     
         //Compute relative T gradient. T = (111111 / (gamma-1)) * (press/rho)
         Real tempCell = (pmb->phydro->w(IPR,k,j,i) / pmb->phydro->w(IDN,k,j,i)); //dont need the factor in front of (press/rho) since it will get divided out when we take relative/normalized change across cells
-        Real dTx = (tempCell - (pmb->phydro->w(IPR,k,j,i-1) / pmb->phydro->w(IDN,k,j,i-1))) / tempCell;
-        Real dTy = (tempCell - (pmb->phydro->w(IPR,k,j-1,i) / pmb->phydro->w(IDN,k,j-1,i))) / tempCell;
-        Real dTz = (tempCell - (pmb->phydro->w(IPR,k-1,j,i) / pmb->phydro->w(IDN,k-1,j,i))) / tempCell;
+        Real dTx = 0.5 * (std::abs((pmb->phydro->w(IPR,k,j,i+1) / pmb->phydro->w(IDN,k,j,i+1)) - (pmb->phydro->w(IPR,k,j,i-1) / pmb->phydro->w(IDN,k,j,i-1)))) / tempCell;
+        Real dTy = 0.5 * (std::abs((pmb->phydro->w(IPR,k,j+1,i) / pmb->phydro->w(IDN,k,j+1,i)) - (pmb->phydro->w(IPR,k,j-1,i) / pmb->phydro->w(IDN,k,j-1,i)))) / tempCell;
+        Real dTz = 0.5 * (std::abs((pmb->phydro->w(IPR,k+1,j,i) / pmb->phydro->w(IDN,k+1,j,i)) - (pmb->phydro->w(IPR,k-1,j,i) / pmb->phydro->w(IDN,k-1,j,i)))) / tempCell;
 
         //Set max_tempGrad to maximum gradient only if the gradient in a given direction is greater than current max_tempGrad, check over all directions
         if (dTx > max_tempGrad) max_tempGrad = dTx;
@@ -669,31 +669,47 @@ int RefinementCondition(MeshBlock *pmb) {
         Real bMagCellxMinus1 = (std::pow(pmb->pfield->bcc(IB1,k,j,i-1),2) + std::pow(pmb->pfield->bcc(IB2,k,j,i-1),2) + std::pow(pmb->pfield->bcc(IB3,k,j,i-1),2));
         Real bMagCellyMinus1 = (std::pow(pmb->pfield->bcc(IB1,k,j-1,i),2) + std::pow(pmb->pfield->bcc(IB2,k,j-1,i),2) + std::pow(pmb->pfield->bcc(IB3,k,j-1,i),2));
         Real bMagCellzMinus1 = (std::pow(pmb->pfield->bcc(IB1,k-1,j,i),2) + std::pow(pmb->pfield->bcc(IB2,k-1,j,i),2) + std::pow(pmb->pfield->bcc(IB3,k-1,j,i),2));
+        Real bMagCellxPlus1 = (std::pow(pmb->pfield->bcc(IB1,k,j,i+1),2) + std::pow(pmb->pfield->bcc(IB2,k,j,i+1),2) + std::pow(pmb->pfield->bcc(IB3,k,j,i+1),2));
+        Real bMagCellyPlus1 = (std::pow(pmb->pfield->bcc(IB1,k,j+1,i),2) + std::pow(pmb->pfield->bcc(IB2,k,j+1,i),2) + std::pow(pmb->pfield->bcc(IB3,k,j+1,i),2));
+        Real bMagCellzPlus1 = (std::pow(pmb->pfield->bcc(IB1,k+1,j,i),2) + std::pow(pmb->pfield->bcc(IB2,k+1,j,i),2) + std::pow(pmb->pfield->bcc(IB3,k+1,j,i),2));
 
         //Calculate total pressures of the cells we need
         Real pressCell =  bMagCell/2 + pmb->phydro->w(IPR,k,j,i);
         Real pressCellxMinus1 =  bMagCellxMinus1/2 + pmb->phydro->w(IPR,k,j,i-1);
         Real pressCellyMinus1 =  bMagCellyMinus1/2 + pmb->phydro->w(IPR,k,j-1,i);
         Real pressCellzMinus1 =  bMagCellzMinus1/2 + pmb->phydro->w(IPR,k-1,j,i);
+        Real pressCellxPlus1 =   bMagCellxPlus1/2 + pmb->phydro->w(IPR,k,j,i+1);
+        Real pressCellyPlus1 =   bMagCellyPlus1/2 + pmb->phydro->w(IPR,k,j+1,i);
+        Real pressCellzPlus1 =   bMagCellzPlus1/2 + pmb->phydro->w(IPR,k+1,j,i);
 
         //Compute gradient in each direction
-        Real dPressx = std::abs(pressCell - pressCellxMinus1) / pressCell;
-        Real dPressy = std::abs(pressCell - pressCellyMinus1) / pressCell;
-        Real dPressz = std::abs(pressCell - pressCellzMinus1) / pressCell;
+        Real dPressx = std::abs(pressCellxPlus1 - pressCellxMinus1) / pressCell;
+        Real dPressy = std::abs(pressCellyPlus1 - pressCellyMinus1) / pressCell;
+        Real dPressz = std::abs(pressCellzPlus1 - pressCellzMinus1) / pressCell;
 
         if (dPressx > max_pressGrad) max_pressGrad = dPressx;
         if (dPressy > max_pressGrad) max_pressGrad = dPressy;
         if (dPressz > max_pressGrad) max_pressGrad = dPressz;
+
+        //Find velocity magntidue. If in supersonic region before termination shock, ensure refinement occurs
+        Real velx = pmb->phydro->w(IVX,k,j,i);
+        Real vely = pmb->phydro->w(IVY,k,j,i);
+        Real velz = pmb->phydro->w(IVZ,k,j,i);
+
+        Real vel_mag = std::sqrt(std::pow(velx,2) + std::pow(vely,2) + std::pow(velz,2));
+
+        if (vel_mag > max_vel) max_vel = vel_mag;
       }
     }
   }
 
-  //Tally up counter by seeing if the maximum gradients are larger than thresholds
+  //Tally up counter by seeing if the maximum gradients are larger than thresholds. If in supersonic region, increase counter by 2 to ensure refinement
   if (max_rhoGrad > threshold_densGrad) counter++;
   if (max_tempGrad > threshold_tempGrad) counter++;
   if (max_pressGrad > threshold_pressGrad) counter++;
+  if (max_vel > (sw_velBC/v0 - 0.4)) counter += 2;
 
-  if (counter >= 2) { //Refine if two thresholds are satisfied
+  if (counter >= 2) { //Refine if two thresholds are satisfied, or if in supersonic region
     return 1;
   } else if (counter == 0) { //Derefine if no thresholds satisfied
     return -1;

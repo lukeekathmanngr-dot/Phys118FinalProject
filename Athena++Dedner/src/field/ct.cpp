@@ -55,8 +55,10 @@ void Field::CT(const Real wght, FaceField &b_out) {
           Real psi_i   = pmb->phydro->u(IPSIC, k, j, i);
           Real psi_im1 = pmb->phydro->u(IPSIC, k, j, i-1);
           Real dx1 = pmb->pcoord->x1v(i) - pmb->pcoord->x1v(i-1);
-          Real dpsi_dx1 = (psi_i - psi_im1) / dx1;
-          b_out.x1f(k,j,i) -= wght * dpsi_dx1;
+          if (dx1 != 0.0) {  // safety check (shouldn't happen in normal use)
+            Real dpsi_dx1 = (psi_i - psi_im1) / dx1;
+            b_out.x1f(k,j,i) -= wght * dpsi_dx1;
+          }
         }
         if (pmb->block_size.nx3 > 1) {
           pmb->pcoord->Edge2Length(k  ,j,is,ie+1,len);
@@ -87,13 +89,16 @@ void Field::CT(const Real wght, FaceField &b_out) {
 #pragma omp simd
       for (int i=is; i<=ie; ++i) {
         b_out.x2f(k,j,i) += (wght/area(i))*(len(i+1)*e3(k,j,i+1) - len(i)*e3(k,j,i));
-        // Dedner: -∂ψ/∂x2
-        // Face x2f(k,j,i) is between cells j-1 and j
-        Real psi_j   = pmb->phydro->u(IPSIC, k, j, i);
-        Real psi_jm1 = pmb->phydro->u(IPSIC, k, j-1, i);
-        Real dx2 = pmb->pcoord->x2v(j) - pmb->pcoord->x2v(j-1);
-        Real dpsi_dx2 = (psi_j - psi_jm1) / dx2;
-        b_out.x2f(k,j,i) -= wght * dpsi_dx2;
+        // Dedner: -∂ψ/∂x2 (only in 2D or 3D)
+        if (pmb->block_size.nx2 > 1) {  
+          Real psi_j   = pmb->phydro->u(IPSIC, k, j, i);
+          Real psi_jm1 = pmb->phydro->u(IPSIC, k, j-1, i);
+          Real dx2 = pmb->pcoord->x2v(j) - pmb->pcoord->x2v(j-1);
+          if (dx2 != 0.0) {  // safety check
+            Real dpsi_dx2 = (psi_j - psi_jm1) / dx2;
+            b_out.x2f(k,j,i) -= wght * dpsi_dx2;
+          }
+        }
       }
       if (pmb->block_size.nx3 > 1) {
         pmb->pcoord->Edge1Length(k  ,j,is,ie,len);
@@ -115,13 +120,15 @@ void Field::CT(const Real wght, FaceField &b_out) {
 #pragma omp simd
       for (int i=is; i<=ie; ++i) { 
         b_out.x3f(k,j,i) -= (wght/area(i))*(len(i+1)*e2(k,j,i+1) - len(i)*e2(k,j,i));
-        // Dedner correction: -∂ψ/∂x3
-        // Face x3f(k,j,i) is between cells k-1 and k
-        Real psi_k   = pmb->phydro->u(IPSIC, k, j, i);
-        Real psi_km1 = pmb->phydro->u(IPSIC, k-1, j, i);
-        Real dx3 = pmb->pcoord->x3v(k) - pmb->pcoord->x3v(k-1);
-        Real dpsi_dx3 = (psi_k - psi_km1) / dx3;
-        b_out.x3f(k,j,i) -= wght * dpsi_dx3;
+
+        // Dedner: -∂ψ/∂x3 (only compute in 3D)
+        if (pmb->block_size.nx3 > 1) { //Check for 3D
+          Real psi_k   = pmb->phydro->u(IPSIC, k, j, i);
+          Real psi_km1 = pmb->phydro->u(IPSIC, k-1, j, i);
+          Real dx3 = pmb->pcoord->x3v(k) - pmb->pcoord->x3v(k-1);
+          Real dpsi_dx3 = (psi_k - psi_km1) / dx3;
+          b_out.x3f(k,j,i) -= wght * dpsi_dx3;
+        }
       }
       if (pmb->block_size.nx2 > 1) {
         pmb->pcoord->Edge1Length(k,j  ,is,ie,len);

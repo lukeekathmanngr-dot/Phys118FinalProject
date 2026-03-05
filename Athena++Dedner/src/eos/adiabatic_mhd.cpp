@@ -55,16 +55,19 @@ void EquationOfState::ConservedToPrimitive(
         Real& u_m2 = cons(IM2,k,j,i);
         Real& u_m3 = cons(IM3,k,j,i);
         Real& u_e  = cons(IEN,k,j,i);
+        Real& u_psi  = cons(IPSIC,k,j,i);
 
         Real& w_d  = prim(IDN,k,j,i);
         Real& w_vx = prim(IVX,k,j,i);
         Real& w_vy = prim(IVY,k,j,i);
         Real& w_vz = prim(IVZ,k,j,i);
         Real& w_p  = prim(IPR,k,j,i);
+        Real& w_psi  = prim(IPSIW,k,j,i);
 
         // apply density floor, without changing momentum or energy
         u_d = (u_d > density_floor_) ?  u_d : density_floor_;
         w_d = u_d;
+        //w_psi = u_psi;
 
         Real di = 1.0/u_d;
         w_vx = u_m1*di;
@@ -113,12 +116,14 @@ void EquationOfState::PrimitiveToConserved(
         Real& u_m2 = cons(IM2,k,j,i);
         Real& u_m3 = cons(IM3,k,j,i);
         Real& u_e  = cons(IEN,k,j,i);
+        Real& u_psi = cons(IPSIC,k,j,i);
 
         const Real& w_d  = prim(IDN,k,j,i);
         const Real& w_vx = prim(IVX,k,j,i);
         const Real& w_vy = prim(IVY,k,j,i);
         const Real& w_vz = prim(IVZ,k,j,i);
         const Real& w_p  = prim(IPR,k,j,i);
+        const Real& w_psi = prim(IPSIW,k,j,i);
 
         const Real& bcc1 = bc(IB1,k,j,i);
         const Real& bcc2 = bc(IB2,k,j,i);

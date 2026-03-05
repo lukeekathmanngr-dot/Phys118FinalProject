@@ -1166,6 +1166,7 @@ TimeIntegratorTaskList::TimeIntegratorTaskList(ParameterInput *pin, Mesh *pm) {
     }
 
     // everything else
+
     TaskID before_bval = CONS2PRIM;
     TaskID before_userwork = PHY_BVAL;
     if (radiation_flag) {
@@ -1712,6 +1713,9 @@ TaskStatus TimeIntegratorTaskList::CalculateHydroFlux(MeshBlock *pmb, int stage)
 
 TaskStatus TimeIntegratorTaskList::CalculateEMF(MeshBlock *pmb, int stage) {
   if (stage <= nstages) {
+    //if(stage == 1){
+      //pmb->pfield->ParkerSpiralOverwrite(pmb, pmb->pfield->r_Inner, pmb->pfield->r_outer);
+    //}
     if (stage_wghts[stage-1].main_stage) {
       pmb->pfield->ComputeCornerE(pmb->phydro->w,  pmb->pfield->bcc);
     }
