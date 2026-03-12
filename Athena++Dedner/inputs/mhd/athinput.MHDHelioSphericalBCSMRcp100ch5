@@ -2,7 +2,7 @@
 coordinate_system = cartesian
 
 <job>
-problem_id = 2DMHDHelioCartesianSMRcp8ch5  # problem ID: basename of output filenames
+problem_id = 2DMHDHelioCartesianSMRcp100ch5  # problem ID: basename of output filenames
 
 <output1>
 file_type  = hdf5      # Binary data dump
@@ -13,7 +13,7 @@ id         = prim      # filename
 <time>
 cfl_number = 0.5       # The Courant, Friedrichs, & Lewy (CFL) Number
 nlim       = -1        # cycle limit
-tlim       = 1000        # time limit
+tlim       = 500       # time limit
 integrator = vl2       # time integration algorithm
 xorder     = 2         # order of spatial reconstruction
 ncycle_out = 1         # interval for stdout summary info
@@ -57,7 +57,7 @@ level = 3
 
 <hydro>
 gamma = 1.666666666666667 # gamma = C_p/C_v
-cp_glm = 8.0  #parabolic (damping) dvergence parameter for Dedner cleaning (should be greater than ch, damping ~ ch^2/cp^2)
+cp_glm = 100.0  #parabolic (damping) dvergence parameter for Dedner cleaning (should be greater than ch, damping ~ ch^2/cp^2)
 ch_glm = 5.0 #hyperbolic (wave carrying) divergence parameter for Dedner cleaning
 flag_dedner_source = true #NEEDS TO BE TRUE IN ORDER TO ENABLE SOURCE TERM TO EVOLVE PSI FOR DEDNER CLEANING
 
