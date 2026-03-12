@@ -1,17 +1,25 @@
-How to run the 2D Heliosphere simulation given the problem generator and input file:
+How to run the Heliosphere simulation given the problem generator and input file on Discovery:
 
-1). Navigate to the Athena++Dedner directory
+1). Clone the repository to your local directory
 
-2). Configure the makefile using terminal/python: python3 configure.py --prob=MHDHelioSphericalBCAMR -b --flux=lhlld -hdf5
+2). Navigate to the Athena++Dedner Directory
 
-3). Once Athena++ alerts you it has been successfully configured, run "make all" in your terminal. The source files should begin compiling. After about a minute, you should see a successful compilation!
+3). Load these modules: 
+module load mpi/mpich-x86_64
+module load openmpi/5.0
 
-Note: if you do not have HDF5 installed, you will need it to get the proper output format. If you do have it installed but Athena++ is unable to recognize its location, look through the 'HDF5 Makefile Configuration' text file!
+4). Configure the makefile:
+python configure.py --prob=MHDHelioSphericalBCAMR2D -b -hdf5
 
-4). Now we need to run the generated executable with our input file. A new /bin directory will be created after successful compilation. Navigate to this directory, where you will then see the athena.exe executable. All we need to do is supply the input file to use. Run this in your terminal:
+5). Type "make all" to produce the configured makefile tailored to our problem
 
-./athena -i YOURCUSTOMPATH/Athena++Dedner/inputs/mhd/athinput.MHDHelioSphericalBCAMR2D
+6). after the makefile finishes, move to the 'bin' directory with the new athena executable
 
-Replace YOURCUSTOMPATH with your device's custom path to the Athena++Dedner directory. 
+7). Run the makefile with one of the input files, for me this looks like:
+./athena -i /dartfs-hpc/rc/home/r/f007h2r/Phys118FinalProject/Athena++Dedner/inputs/mhd/athinput.MHDHelioSphericalBCSMRcp10ch7
 
-The code should then run and produce output files :). You can customize the input file to edit the strength of cleaning, etc. The output format are HDF5 files. These are great to view in the Paraview software, however I will no go into depth on how to use the program here!
+
+(note the input files can be found in the 'inputs' folder in the Athena++Dedner directory
+
+
+
