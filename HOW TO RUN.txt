@@ -9,7 +9,7 @@ module load mpi/mpich-x86_64
 module load openmpi/5.0
 
 4). Configure the makefile:
-python configure.py --prob=MHDHelioSphericalBCAMR2D -b -hdf5
+python configure.py --prob=MHDHelioSphericalBC -b -hdf5
 
 5). Type "make all" to produce the configured makefile tailored to our problem
 
