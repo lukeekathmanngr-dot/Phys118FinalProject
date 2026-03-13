@@ -1,0 +1,33 @@
+  Your Athena++ distribution has now been configured with the following options: 
+  Problem generator:            MHDHelioSphericalBC
+  Coordinate system:            cartesian
+  Equation of state:            adiabatic
+  Riemann solver:               hlld
+  Magnetic fields:              ON
+  Number of scalars:            0
+  Number of chemical species:   0
+  Special relativity:           OFF
+  General relativity:           OFF
+  Radiative Transfer:           OFF
+  Implicit Radiation:           OFF
+  Cosmic Ray Transport:         OFF
+  Cosmic Ray Diffusion:         OFF
+  Frame transformations:        OFF
+  Self-Gravity:                 OFF
+  Super-Time-Stepping:          OFF
+  Chemistry:                    OFF
+  KIDA rates:                   OFF
+  ChemRadiation:                OFF
+  chem_ode_solver:              OFF
+  Debug flags:                  OFF
+  Code coverage flags:          OFF
+  Linker flags:                   -lhdf5
+  Floating-point precision:     double
+  Number of ghost cells:        2
+  MPI parallelism:              ON
+  OpenMP parallelism:           OFF
+  FFT:                          OFF
+  HDF5 output:                  ON
+  HDF5 precision:               single
+  Compiler:                     g++
+  Compilation command:          mpicxx  -O3 -std=c++11
