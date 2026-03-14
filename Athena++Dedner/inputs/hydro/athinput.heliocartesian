@@ -1,0 +1,52 @@
+<comment>
+problem   = Hydrodynamic Helio 2D Cartesian
+configure = --prob=HydrostaticHelioCartesian
+coordinate_system = cartesian
+
+<job>
+problem_id = 2DHydrodynamicHelioCartesian  # problem ID: basename of output filenames
+
+<output1>
+file_type  = vtk       # VTK data dump
+variable   = prim      # variables to be output
+dt         = 5        # time increment between outputs
+id         = primitive
+
+<output3>
+file_type  = rst       # Restart dump
+dt         = 100.0       # time increment between outputs
+
+<time>
+cfl_number = 0.2      # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim       = -1        # cycle limit
+tlim       = 10000       # time limit
+integrator = vl2       # time integration algorithm
+xorder     = 2         # order of spatial reconstruction
+ncycle_out = 1         # interval for stdout summary info
+
+<mesh>
+nx1        = 256         # Number of zones in X1-direction
+x1min      = -800               # minimum value of X1
+x1max      =  400         # maximum value of X1
+ix1_bc     = outflow            # custom defined solar wind inflow
+ox1_bc     = outflow               # custom defined inflow in -x direction   
+x1rat = 1
+
+nx2        = 256            # Number of zones in X2-direction
+x2min      = -600              # Start at zero radians
+x2max      = 600            # End at 2pi radians
+ix2_bc     = outflow     # inner-X2 boundary flag
+ox2_bc     = outflow   # outer-X2 boundary flag
+x2rat      = 1
+
+nx3 = 1                #2D simulation, so set number of cells to one 
+x3min      = -0.5      
+x3max      = 0.5       
+ix3_bc     = outflow  # inner-X3 boundary flag
+ox3_bc     = outflow  # outer-X3 boundary flag
+
+<hydro>
+gamma = 1.666666666666667 # gamma = C_p/C_v
+
+<problem>
+radius = 1.0  # AU (matches your r0)

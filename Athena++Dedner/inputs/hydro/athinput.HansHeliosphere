@@ -1,0 +1,89 @@
+<comment>
+problem   = heliosphere, with direct physical parameter input
+reference = 
+configure = --prob heliosphere -mpi
+
+<job>
+problem_id = heliosphere      # problem ID: basename of output filenames
+
+<output1>
+file_type  = vtk        # text data dump
+variable   = prim       # variables to be output
+dt         = 2          # time increment between outputs
+
+<output2>
+file_type  = hst        # history file
+dt         = 100.0     # time increment between outputs
+
+<time>
+cfl_number = 0.3        # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim       = -1         # cycle limit
+tlim       = 2000.0     # time limit
+integrator  = vl2       # time integration algorithm
+xorder      = 2         # order of spatial reconstruction
+ncycle_out  = 1         # interval for stdout summary info
+
+<mesh>
+nx1        = 120        # Number of zones in X1-direction
+x1min      = -600.0       # minimum value of X1
+x1max      =  600.0       # maximum value of X1
+ix1_bc     = user       # inner-X1 boundary flag
+ox1_bc     = outflow    # outer-X1 boundary flag
+
+nx2        = 120        # Number of zones in X2-direction
+x2min      = -597.5       # minimum value of X2
+x2max      =  602.5       # maximum value of X2
+ix2_bc     = outflow   # inner-X2 boundary flag
+ox2_bc     = outflow   # outer-X2 boundary flag
+
+nx3        = 120        # Number of zones in X3-direction
+x3min      = -597.5       # minimum value of X3
+x3max      =  602.5       # maximum value of X3
+ix3_bc     = outflow   # inner-X3 boundary flag
+ox3_bc     = outflow   # outer-X3 boundary flag
+
+num_threads = 1         # Number of OpenMP threads per process
+
+<meshblock>
+nx1        = 120
+nx2        = 120
+nx3        = 60 
+
+<hydro>
+gamma           = 1.666666666667 # gamma = C_p/C_v
+iso_sound_speed = 0.4082482905   # equavalent to sqrt(gamma*p/d) for p=0.1, d=1
+
+#MACHINE UNIT VALUES:
+#FIXED VALUES
+#distance: 1 AU
+#velocity: 52.483 km/s
+#mass density: 2.8E13 kg/AU^3 (or 5 m_p/cm^3)
+#DERIVED VALUES
+#time: 33.0 days
+#pressure: 2.30E11 N/m^2
+#energy density: 2.3E11 J/m^3
+#magnetic field: 5.38E-9 T
+#momentum: 262.4 (m_p cm^-3)(km s^-1)
+#temperature: 111111 K
+
+<problem>
+rout = 40.0     # overwriting region outer radius (purely simulated variables from rout -> infinity)
+rramp = 30.0    # overwriting region ramp radius (linear weighting of theoretical and simulated variables from rramp -> rout)
+rin = 5.0       # overwriting region inner radius (adjusted variables from 0->rin, purely theoretical variables from rin -> rramp)
+rin_mag = 15.0  # same as above but for magnetic fields
+rref = 1.0      # reference radius (at which all of the below specified variables are given an initial value)
+b0         = 0.05
+angle      = 0.0
+vx_ISM     = 0.503
+vy_ISM     = 0.0
+vz_ISM     = 0.0
+d_ISM      = 0.044
+p_ISM      = 0.001964
+mom_rad_wind = 7.6215 #all wind variables fixed at rref radius
+d_wind = 1.0
+e_wind = 0.9
+b_rad_wind = 0.94
+split_monopole = true
+plasma_sheet = false
+hps_height = 25.0
+hps_factor = 2.0
