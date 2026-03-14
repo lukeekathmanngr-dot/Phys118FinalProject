@@ -1,0 +1,78 @@
+<comment>
+problem   = Hydrodynamic Helio 3D Cartesian
+coordinate_system = cartesian
+
+<job>
+problem_id = 3DHydrodynamicHelioCartesianSMRSphericalBC  # problem ID: basename of output filenames
+
+<output1>
+file_type  = hdf5      # Binary data dump
+variable   = prim      # variables to be output
+dt         = 5      # time increment between outputs
+
+<output2>
+file_type  = rst       # rst data dump
+dt         = 3000        # time increment between outputs
+
+<time>
+cfl_number = 0.5      # The Courant, Friedrichs, & Lewy (CFL) Number
+nlim       = -1        # cycle limit
+tlim       = 12000       # time limit
+integrator = vl2       # time integration algorithm
+xorder     = 2         # order of spatial reconstruction
+ncycle_out = 1         # interval for stdout summary info
+
+<mesh>
+nx1        = 120           # Number of zones in X1-direction
+x1min      = -900          # minimum value of X1
+x1max      = 500           # maximum value of X1
+ix1_bc     = outflow       # inner-X1 boundary flag
+ox1_bc     = user          # outer-X1 boundary flag  
+
+nx2        = 120          
+x2min      = -700              
+x2max      = 700            
+ix2_bc     = outflow      # inner-X2 boundary flag
+ox2_bc     = outflow      # outer-X2 boundary flag
+
+nx3        = 120      
+x3min      = -700      
+x3max      = 700       
+ix3_bc     = outflow  # inner-X3 boundary flag
+ox3_bc     = outflow  # outer-X3 boundary flag
+
+refinement  = static  # Static Mesh Refinement
+
+<meshblock>
+nx1 = 10
+nx2 = 10
+nx3 = 10
+
+<refinement1>
+x1min = -30
+x1max = 30
+x2min = -30
+x2max = 30
+x3min = -30
+x3max = 30
+level = 4
+
+<hydro>
+gamma = 1.666666666666667 # gamma = C_p/C_v
+iso_sound_speed = 1.00
+dfloor = 1e-14 #Maybe wanna mess around with these floors?
+pfloor = 1e-14
+
+<problem>
+ism_dens = 0.1 #cm-3
+ism_temp = 6530.0 #K
+ism_vel = 26.53 #km/s
+ism_B = 0
+angle_ism = 0
+omega = 2.8e-6
+radius_swBC = 1.0 #AU
+sw_densBC = 5.0 #cm-3, 1AU
+sw_tempBC = 100000.0 #K, 1AU
+sw_velBC = 400.0 #km/s, assume constant solar wind velocity within termination shock
+sw_bBC = 5.0 #nT
+r_inner = 20.0 #AU

@@ -1,0 +1,65 @@
+# Configured outputs
+Athena++Dedner/Makefile
+Athena++Dedner/src/defs.hpp
+Athena++Dedner/configure.log
+
+# Object and binary directories
+Athena++Dedner/obj/
+Athena++Dedner/bin/
+
+# Compiled object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+athena
+
+# Athena output files
+*.tab
+*.vtk
+*.athdf*
+*.hst
+*.rst
+meshtest.dat
+
+# Visualization package files
+Athena++Dedner/.smhist
+
+# Mac OS metadata
+Athena++Dedner/.DS_Store
+
+# editor temp files
+*~
+*.swp
+
+# Gcov: GCC coverage testing tool- data files
+*.gcno
+*.gcda
+
+# Gcov log files
+*.gcov
+
+# Lcov: graphical frontend for Gcov- tracefiles
+*.info
+
+# genhtml test case description format produced by gendesc
+*.desc
+
+# compiled doxygen file
+Athena++Dedner/doc/doxy*
