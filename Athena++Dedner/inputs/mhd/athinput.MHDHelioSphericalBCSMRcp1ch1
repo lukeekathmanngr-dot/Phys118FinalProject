@@ -7,7 +7,7 @@ problem_id = 2DMHDHelioCartesianSMRcp1ch1  # problem ID: basename of output file
 <output1>
 file_type  = hdf5      # Binary data dump
 variable   = prim      # variables to be output
-dt         = 10        # time increment between outputs
+dt         = 1        # time increment between outputs
 id         = prim      # filename
 
 <time>

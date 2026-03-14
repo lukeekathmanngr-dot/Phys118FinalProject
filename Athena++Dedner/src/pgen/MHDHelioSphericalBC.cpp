@@ -393,7 +393,7 @@ void Boundary_ox1(MeshBlock *pmb, Coordinates *pco,
                                     prim(IVX,k,j,i) = -ism_vel / v0; //x-direction
                                     prim(IVY,k,j,i) = 0;
                                     prim(IVZ,k,j,i) = 0;
-                                    prim(IPSIW,k,j,i) = 0;
+                                    //prim(IPSIW,k,j,i) = 0;
                                 }
                             }
                         }
