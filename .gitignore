@@ -1,11 +1,11 @@
 # Configured outputs
-Makefile
-src/defs.hpp
-configure.log
+Athena++Dedner/Makefile
+Athena++Dedner/src/defs.hpp
+Athena++Dedner/configure.log
 
 # Object and binary directories
-obj/
-bin/
+Athena++Dedner/obj/
+Athena++Dedner/bin/
 
 # Compiled object files
 *.slo
